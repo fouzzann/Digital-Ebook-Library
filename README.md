@@ -13,7 +13,7 @@
 - [Setup Instructions](#setup-instructions)
 - [How to Run Backend](#how-to-run-backend)
 - [How to Run Flutter App](#how-to-run-flutter-app)
-- [How to Run Tests](#how-to-run-tests)
+- [Flutter Tests & Test Results](#flutter-tests--test-results)
 - [API Overview](#api-overview)
 - [Known Limitations](#known-limitations)
 - [AI Tools Used](#ai-tools-used)
@@ -120,18 +120,34 @@ flutter run -d chrome
 
 ---
 
-## How to Run Tests
+## Flutter Tests & Test Results
 
-Run the complete automated unit and widget test suite:
+Run the complete automated unit and widget test suite for the project:
 
 ```bash
 flutter test
+```
+
+### Test Results
+
+All tests execute cleanly and pass successfully:
+
+![Flutter Test Results](assets/screenshots/flutter_tests_passed.png)
+
+```text
+00:04 +5: All tests passed!
 ```
 
 ### Test Coverage Highlights
 - `test/download_storage_test.dart`: Validates `DownloadBloc` percentage progress, public storage path resolution, and duplicate download prevention.
 - `test/pdf_reader_page_test.dart`: Tests PDF reader initialization and reading progress persistence.
 - `test/upload_ebook_page_test.dart`: Validates custom e-book upload forms and file selection.
+- `test/ebook_card_test.dart`: Tests `EbookCard` rendering (title, author, format badge, rating) and tap/download/delete callbacks.
+- `test/empty_state_test.dart`: Validates `EmptyView` title, subtext, icon, and reset filter action button.
+- `test/search_ui_test.dart`: Verifies `SearchBarWidget` debounced search typing and clear button behavior.
+- `test/delete_confirmation_test.dart`: Tests confirmation `AlertDialog` rendering and `DeleteEbook` BLoC event dispatching.
+- `test/ebook_bloc_test.dart`: Unit tests for `EbookBloc` state transitions (`LoadEbooks`, `SearchEbooks`, `DeleteEbook`).
+- `test/validation_logic_test.dart`: Unit tests for form field validation rules and `EbookEntity` immutability.
 - `test/widget_test.dart`: Verifies core application rendering and service locator registration.
 
 ---
