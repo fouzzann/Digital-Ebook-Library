@@ -9,4 +9,6 @@ abstract class EbookRepository {
   Future<Either<Failure, EbookEntity>> uploadEbook(EbookEntity ebook);
   Future<Either<Failure, Stream<double>>> downloadEbook(String id);
   Future<Either<Failure, void>> deleteEbook(String id);
+  Future<Either<Failure, void>> saveReadingProgress(String ebookId, int pageNumber);
+  Future<Either<Failure, int>> getReadingProgress(String ebookId);
 }

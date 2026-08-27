@@ -3,13 +3,18 @@ import '../../../../core/errors/failures.dart';
 import '../../../../core/utils/result.dart';
 import '../../domain/entities/ebook_entity.dart';
 import '../../domain/repositories/ebook_repository.dart';
+import '../datasources/ebook_local_data_source.dart';
 import '../datasources/ebook_remote_data_source.dart';
 import '../models/ebook_model.dart';
 
 class EbookRepositoryImpl implements EbookRepository {
   final EbookRemoteDataSource remoteDataSource;
+  final EbookLocalDataSource localDataSource;
 
-  EbookRepositoryImpl({required this.remoteDataSource});
+  EbookRepositoryImpl({
+    required this.remoteDataSource,
+    required this.localDataSource,
+  });
 
   @override
   Future<Either<Failure, List<EbookEntity>>> fetchEbooks() async {
@@ -93,6 +98,26 @@ class EbookRepositoryImpl implements EbookRepository {
       return Left(ServerFailure(e.message, statusCode: e.statusCode));
     } catch (e) {
       return Left(ServerFailure('Failed to delete e-book: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> saveReadingProgress(String ebookId, int pageNumber) async {
+    try {
+      await localDataSource.saveReadingProgress(ebookId, pageNumber);
+      return const Right(null);
+    } catch (e) {
+      return Left(CacheFailure('Failed to save reading progress: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, int>> getReadingProgress(String ebookId) async {
+    try {
+      final page = await localDataSource.getReadingProgress(ebookId);
+      return Right(page);
+    } catch (e) {
+      return const Right(1);
     }
   }
 }

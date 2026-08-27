@@ -23,8 +23,10 @@ class CategoryFilterChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return SizedBox(
-      height: 38,
+      height: 40,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -38,31 +40,46 @@ class CategoryFilterChips extends StatelessWidget {
             onTap: () => onSelected(category),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
               decoration: BoxDecoration(
-                color: isSelected ? AppColors.primary : AppColors.surface,
-                borderRadius: BorderRadius.circular(20),
+                gradient: isSelected ? AppColors.primaryGradient : null,
+                color: isSelected ? null : (isDark ? AppColors.surface : Colors.white),
+                borderRadius: BorderRadius.circular(24),
                 border: Border.all(
-                  color: isSelected ? AppColors.primary : AppColors.border,
+                  color: isSelected ? Colors.transparent : (isDark ? AppColors.border : const Color(0xFFCBD5E1)),
                 ),
                 boxShadow: isSelected
                     ? [
                         BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 3),
+                          color: AppColors.primary.withValues(alpha: 0.35),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
                         ),
                       ]
-                    : null,
+                    : [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: isDark ? 0.1 : 0.04),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
               ),
               child: Center(
-                child: Text(
-                  category,
-                  style: TextStyle(
-                    color: isSelected ? Colors.white : AppColors.textSecondary,
-                    fontSize: 13,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                  ),
+                child: Row(
+                  children: [
+                    if (isSelected) ...[
+                      const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 12),
+                      const SizedBox(width: 6),
+                    ],
+                    Text(
+                      category,
+                      style: TextStyle(
+                        color: isSelected ? Colors.white : (isDark ? AppColors.textSecondary : const Color(0xFF475569)),
+                        fontSize: 13,
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
