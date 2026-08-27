@@ -14,29 +14,32 @@ class DownloadInitial extends DownloadState {
 class DownloadInProgress extends DownloadState {
   final String ebookId;
   final double progress;
+  final int percentage;
   final String statusMessage;
 
-  const DownloadInProgress({
+  DownloadInProgress({
     required this.ebookId,
     required this.progress,
     this.statusMessage = 'Downloading e-book...',
-  });
+  }) : percentage = (progress * 100).clamp(0, 100).toInt();
 
   @override
-  List<Object?> get props => [ebookId, progress, statusMessage];
+  List<Object?> get props => [ebookId, progress, percentage, statusMessage];
 }
 
 class DownloadSuccess extends DownloadState {
   final String ebookId;
   final String savedFilePath;
+  final String title;
 
   const DownloadSuccess({
     required this.ebookId,
     required this.savedFilePath,
+    this.title = 'E-Book',
   });
 
   @override
-  List<Object?> get props => [ebookId, savedFilePath];
+  List<Object?> get props => [ebookId, savedFilePath, title];
 }
 
 class DownloadFailure extends DownloadState {

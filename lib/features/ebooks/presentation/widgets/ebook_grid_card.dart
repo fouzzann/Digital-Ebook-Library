@@ -3,12 +3,14 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/image_utils.dart';
 import '../../domain/entities/ebook_entity.dart';
 import 'glass_container.dart';
+import 'highlighted_text_widget.dart';
 
 class EbookGridCard extends StatelessWidget {
   final EbookEntity ebook;
   final VoidCallback onTap;
   final VoidCallback onDownload;
   final VoidCallback onDelete;
+  final String searchQuery;
 
   const EbookGridCard({
     super.key,
@@ -16,6 +18,7 @@ class EbookGridCard extends StatelessWidget {
     required this.onTap,
     required this.onDownload,
     required this.onDelete,
+    this.searchQuery = '',
   });
 
   @override
@@ -44,7 +47,7 @@ class EbookGridCard extends StatelessWidget {
               children: [
                 Hero(
                   tag: 'cover_${ebook.id}',
-                  child: buildEbookCoverImage(coverUrl: ebook.coverUrl, fit: BoxFit.cover),
+                  child: buildEbookCoverImage(coverUrl: ebook.coverUrl, fit: BoxFit.cover, title: ebook.title),
                 ),
                 // Gradient Shadow Overlay
                 Container(
@@ -161,8 +164,9 @@ class EbookGridCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  ebook.title,
+                HighlightedText(
+                  text: ebook.title,
+                  query: searchQuery,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -176,8 +180,9 @@ class EbookGridCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(
-                      child: Text(
-                        ebook.author,
+                      child: HighlightedText(
+                        text: ebook.author,
+                        query: searchQuery,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(

@@ -13,6 +13,6 @@ void main() {
     await tester.pump(const Duration(milliseconds: 700));
 
     // Verify main app title is rendered
-    expect(find.text('Digital E-Book Library'), findsOneWidget);
+    expect(find.text('Digital E Book'), findsOneWidget);
   });
 }

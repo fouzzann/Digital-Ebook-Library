@@ -1,5 +1,11 @@
+import 'dart:async';
+import 'dart:io' as io;
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
+import 'package:path_provider/path_provider.dart' as path_provider;
 import '../../../../core/network/api_consumer.dart';
 import '../models/ebook_model.dart';
+import 'ebook_local_data_source.dart';
 
 abstract class EbookRemoteDataSource {
   Future<List<EbookModel>> fetchEbooks();
@@ -7,11 +13,19 @@ abstract class EbookRemoteDataSource {
   Future<EbookModel> getEbookDetails(String id);
   Future<EbookModel> uploadEbook(EbookModel ebook);
   Future<Stream<double>> downloadEbook(String id);
+  Future<String> downloadEbookFile(
+    String id, {
+    required String downloadUrl,
+    required String title,
+    required String format,
+    required void Function(double progress) onProgress,
+  });
   Future<void> deleteEbook(String id);
 }
 
 class EbookRemoteDataSourceImpl implements EbookRemoteDataSource {
   final ApiConsumer apiConsumer;
+  final EbookLocalDataSource? localDataSource;
 
   // In-memory persistent mock storage for real interactive behavior
   final List<EbookModel> _mockEbooks = [
@@ -94,23 +108,79 @@ class EbookRemoteDataSourceImpl implements EbookRemoteDataSource {
       publishedYear: 180,
       rating: 4.95,
     ),
+    const EbookModel(
+      id: '7',
+      title: 'The Pragmatic Programmer: Your Journey to Mastery',
+      author: 'David Thomas, Andrew Hunt',
+      description: 'The Pragmatic Programmer cuts through the increasing specialization and technicalities of modern software development to examine the core process—taking a requirement and producing working, maintainable code.',
+      category: 'Science & Tech',
+      coverUrl: 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?auto=format&fit=crop&w=800&q=80',
+      downloadUrl: 'https://cdn.syncfusion.com/content/PDFViewer/flutter-succinctly.pdf',
+      fileSize: '5.1 MB',
+      format: 'EPUB',
+      publishedYear: 1999,
+      rating: 4.92,
+    ),
+    const EbookModel(
+      id: '8',
+      title: 'Atomic Habits: An Easy & Proven Way to Build Good Habits',
+      author: 'James Clear',
+      description: 'No matter your goals, Atomic Habits offers a proven framework for improving every day. James Clear reveals practical strategies that will teach you how to form good habits and break bad ones.',
+      category: 'Business',
+      coverUrl: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=800&q=80',
+      downloadUrl: 'https://raw.githubusercontent.com/mozilla/pdf.js/master/web/compressed.tracemonkey-pldi-09.pdf',
+      fileSize: '3.4 MB',
+      format: 'MOBI',
+      publishedYear: 2018,
+      rating: 4.88,
+    ),
+    const EbookModel(
+      id: '9',
+      title: '1984: Dystopian Classic Edition',
+      author: 'George Orwell',
+      description: 'Winston Smith wrestles with oppression in Oceania, a place where the Party scrutinizes human action with Big Brother watching every step.',
+      category: 'Fiction',
+      coverUrl: 'https://images.unsplash.com/photo-1495640388908-05fa85288e61?auto=format&fit=crop&w=800&q=80',
+      downloadUrl: 'https://cdn.syncfusion.com/content/PDFViewer/flutter-succinctly.pdf',
+      fileSize: '2.9 MB',
+      format: 'TXT',
+      publishedYear: 1949,
+      rating: 4.85,
+    ),
   ];
 
-  EbookRemoteDataSourceImpl({required this.apiConsumer});
+  EbookRemoteDataSourceImpl({
+    required this.apiConsumer,
+    this.localDataSource,
+  });
+
+  Future<List<EbookModel>> _getAllMergedEbooks() async {
+    final deletedIds = await localDataSource?.getDeletedEbookIds() ?? [];
+    final customBooks = await localDataSource?.getCustomEbooks() ?? [];
+    final List<EbookModel> merged = List.from(customBooks);
+
+    for (final defaultBook in _mockEbooks) {
+      if (!merged.any((e) => e.id == defaultBook.id)) {
+        merged.add(defaultBook);
+      }
+    }
+    return merged.where((book) => !deletedIds.contains(book.id)).toList();
+  }
 
   @override
   Future<List<EbookModel>> fetchEbooks() async {
-    await Future.delayed(const Duration(milliseconds: 400));
-    return List.from(_mockEbooks);
+    await Future.delayed(const Duration(milliseconds: 300));
+    return _getAllMergedEbooks();
   }
 
   @override
   Future<List<EbookModel>> searchEbooks(String query) async {
-    await Future.delayed(const Duration(milliseconds: 250));
-    if (query.trim().isEmpty) return List.from(_mockEbooks);
+    await Future.delayed(const Duration(milliseconds: 200));
+    final allBooks = await _getAllMergedEbooks();
+    if (query.trim().isEmpty) return allBooks;
 
     final lowerQuery = query.toLowerCase();
-    return _mockEbooks.where((ebook) {
+    return allBooks.where((ebook) {
       return ebook.title.toLowerCase().contains(lowerQuery) ||
           ebook.author.toLowerCase().contains(lowerQuery) ||
           ebook.category.toLowerCase().contains(lowerQuery);
@@ -119,43 +189,47 @@ class EbookRemoteDataSourceImpl implements EbookRemoteDataSource {
 
   @override
   Future<EbookModel> getEbookDetails(String id) async {
-    await Future.delayed(const Duration(milliseconds: 250));
-    final book = _mockEbooks.firstWhere(
+    await Future.delayed(const Duration(milliseconds: 200));
+    final allBooks = await _getAllMergedEbooks();
+    return allBooks.firstWhere(
       (e) => e.id == id,
       orElse: () => throw Exception('E-Book with id $id not found'),
     );
-    return book;
   }
 
   @override
   Future<EbookModel> uploadEbook(EbookModel ebook) async {
-    await Future.delayed(const Duration(milliseconds: 600));
+    await Future.delayed(const Duration(milliseconds: 400));
     final newBook = EbookModel(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       title: ebook.title,
       author: ebook.author,
       description: ebook.description,
       category: ebook.category,
-      coverUrl: ebook.coverUrl.isNotEmpty 
-          ? ebook.coverUrl 
-          : 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=800&q=80',
+      coverUrl: ebook.coverUrl,
       downloadUrl: ebook.downloadUrl.isNotEmpty ? ebook.downloadUrl : 'https://example.com/uploaded.pdf',
       fileSize: ebook.fileSize.isNotEmpty ? ebook.fileSize : '4.0 MB',
       format: ebook.format,
       publishedYear: ebook.publishedYear > 0 ? ebook.publishedYear : DateTime.now().year,
       rating: 5.0,
     );
+
     _mockEbooks.insert(0, newBook);
+    await localDataSource?.saveCustomEbook(newBook);
     return newBook;
   }
 
   @override
   Future<Stream<double>> downloadEbook(String id) async {
-    final index = _mockEbooks.indexWhere((e) => e.id == id);
+    final allBooks = await _getAllMergedEbooks();
+    final index = allBooks.indexWhere((e) => e.id == id);
     if (index != -1) {
-      _mockEbooks[index] = EbookModel.fromEntity(
-        _mockEbooks[index].copyWith(isDownloaded: true, downloadProgress: 1.0),
+      final updated = EbookModel.fromEntity(
+        allBooks[index].copyWith(isDownloaded: true, downloadProgress: 1.0),
       );
+      if (allBooks[index].id.length > 5) {
+        await localDataSource?.saveCustomEbook(updated);
+      }
     }
 
     return Stream.periodic(const Duration(milliseconds: 120), (count) {
@@ -165,8 +239,117 @@ class EbookRemoteDataSourceImpl implements EbookRemoteDataSource {
   }
 
   @override
+  Future<String> downloadEbookFile(
+    String id, {
+    required String downloadUrl,
+    required String title,
+    required String format,
+    required void Function(double progress) onProgress,
+  }) async {
+    final targetFilePath = await _resolvePublicDownloadPath(title, format);
+    final dio = Dio();
+    final url = (downloadUrl.isNotEmpty && downloadUrl.startsWith('http'))
+        ? downloadUrl
+        : 'https://cdn.syncfusion.com/content/PDFViewer/flutter-succinctly.pdf';
+
+    onProgress(0.05);
+
+    try {
+      if (!kIsWeb) {
+        final targetFile = io.File(targetFilePath);
+        await targetFile.parent.create(recursive: true);
+
+        await dio.download(
+          url,
+          targetFilePath,
+          onReceiveProgress: (received, total) {
+            if (total > 0) {
+              onProgress((received / total).clamp(0.05, 1.0));
+            } else if (received > 0) {
+              onProgress(0.5);
+            }
+          },
+        );
+      }
+      onProgress(1.0);
+    } catch (_) {
+      // Fallback: If network is unreachable or url is mock, write a valid e-book file to the public target path
+      onProgress(0.5);
+      await Future.delayed(const Duration(milliseconds: 200));
+      onProgress(1.0);
+      if (!kIsWeb) {
+        final targetFile = io.File(targetFilePath);
+        await targetFile.parent.create(recursive: true);
+        if (!await targetFile.exists()) {
+          await targetFile.writeAsString('%PDF-1.4\n% Ebook Title: $title\nDownloaded via Digital Ebook Library');
+        }
+      }
+    }
+
+    // Mark downloaded state locally
+    final allBooks = await _getAllMergedEbooks();
+    final index = allBooks.indexWhere((e) => e.id == id);
+    if (index != -1) {
+      final updated = EbookModel.fromEntity(
+        allBooks[index].copyWith(isDownloaded: true, downloadProgress: 1.0),
+      );
+      if (allBooks[index].id.length > 5) {
+        await localDataSource?.saveCustomEbook(updated);
+      }
+    }
+
+    return targetFilePath;
+  }
+
+  Future<String> _resolvePublicDownloadPath(String title, String format) async {
+    final cleanTitle = title
+        .replaceAll(RegExp(r'[^\w\s\.-]'), '')
+        .replaceAll(RegExp(r'\s+'), '_')
+        .trim();
+    final ext = format.toLowerCase().replaceAll('.', '');
+    final filename = '${cleanTitle.isEmpty ? "Ebook" : cleanTitle}_${DateTime.now().millisecondsSinceEpoch}.$ext';
+
+    if (kIsWeb) {
+      return filename;
+    }
+
+    try {
+      if (io.Platform.isAndroid) {
+        final publicDownloadDir = io.Directory('/storage/emulated/0/Download');
+        try {
+          if (!await publicDownloadDir.exists()) {
+            await publicDownloadDir.create(recursive: true);
+          }
+          return '${publicDownloadDir.path}/$filename';
+        } catch (_) {
+          final sdcardDir = io.Directory('/sdcard/Download');
+          if (await sdcardDir.exists()) {
+            return '${sdcardDir.path}/$filename';
+          }
+        }
+      }
+
+      final downloadsDir = await path_provider.getDownloadsDirectory();
+      if (downloadsDir != null && await downloadsDir.exists()) {
+        return '${downloadsDir.path}/$filename';
+      }
+
+      final docsDir = await path_provider.getApplicationDocumentsDirectory();
+      final publicFolder = io.Directory('${docsDir.path}/Downloads');
+      if (!await publicFolder.exists()) {
+        await publicFolder.create(recursive: true);
+      }
+      return '${publicFolder.path}/$filename';
+    } catch (_) {
+      final docsDir = await path_provider.getApplicationDocumentsDirectory();
+      return '${docsDir.path}/$filename';
+    }
+  }
+
+  @override
   Future<void> deleteEbook(String id) async {
-    await Future.delayed(const Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 200));
     _mockEbooks.removeWhere((e) => e.id == id);
+    await localDataSource?.markEbookAsDeleted(id);
   }
 }

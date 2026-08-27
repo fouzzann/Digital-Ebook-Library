@@ -1,6 +1,12 @@
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/ebook_entity.dart';
 
+enum SortOption {
+  recentlyUploaded,
+  titleAsc,
+  authorAsc,
+}
+
 abstract class EbookEvent extends Equatable {
   const EbookEvent();
 
@@ -31,6 +37,26 @@ class FilterEbooksByCategory extends EbookEvent {
 
   @override
   List<Object?> get props => [category];
+}
+
+/// Event to filter e-books by format (PDF, EPUB, MOBI, TXT)
+class FilterEbooksByFormat extends EbookEvent {
+  final String format;
+
+  const FilterEbooksByFormat(this.format);
+
+  @override
+  List<Object?> get props => [format];
+}
+
+/// Event to sort e-books
+class SortEbooks extends EbookEvent {
+  final SortOption sortOption;
+
+  const SortEbooks(this.sortOption);
+
+  @override
+  List<Object?> get props => [sortOption];
 }
 
 /// Event to fetch details of a specific e-book by ID

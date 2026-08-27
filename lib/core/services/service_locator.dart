@@ -40,7 +40,10 @@ Future<void> initServiceLocator() async {
     () => EbookLocalDataSourceImpl(sharedPreferences: sl()),
   );
   sl.registerLazySingleton<EbookRemoteDataSource>(
-    () => EbookRemoteDataSourceImpl(apiConsumer: sl()),
+    () => EbookRemoteDataSourceImpl(
+      apiConsumer: sl(),
+      localDataSource: sl(),
+    ),
   );
 
   // -----------------------
@@ -68,7 +71,7 @@ Future<void> initServiceLocator() async {
   // -----------------------
   // BLoC
   // -----------------------
-  sl.registerLazySingleton(() => ThemeBloc());
+  sl.registerLazySingleton(() => ThemeBloc(sharedPreferences: sl()));
   sl.registerFactory(
     () => EbookBloc(
       fetchEbooksUseCase: sl(),

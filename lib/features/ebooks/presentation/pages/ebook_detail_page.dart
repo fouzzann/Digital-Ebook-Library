@@ -1,6 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/utils/image_utils.dart';
@@ -17,6 +19,45 @@ class EbookDetailPage extends StatelessWidget {
   final EbookEntity ebook;
 
   const EbookDetailPage({super.key, required this.ebook});
+
+  Future<void> _safeOpenFile(BuildContext context, String filePath) async {
+    try {
+      final result = await OpenFilex.open(filePath);
+      if (result.type != ResultType.done && context.mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => PdfReaderPage(ebook: ebook.copyWith(downloadUrl: filePath)),
+          ),
+        );
+      }
+    } catch (_) {
+      if (context.mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => PdfReaderPage(ebook: ebook.copyWith(downloadUrl: filePath)),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _safeShareFile(BuildContext context, String filePath, String title) async {
+    try {
+      await Share.shareXFiles([XFile(filePath)], text: title);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please restart the app build (stop flutter run & run again) to bind native share capabilities.'),
+            backgroundColor: AppColors.warning,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
 
   void _showDeleteConfirmation(BuildContext context) {
     showDialog(
@@ -57,18 +98,18 @@ class EbookDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.getBackground(context),
       body: Stack(
         children: [
           // Background Cover Image Blur Effect
           Positioned.fill(
-            child: buildEbookCoverImage(coverUrl: ebook.coverUrl, fit: BoxFit.cover),
+            child: buildEbookCoverImage(coverUrl: ebook.coverUrl, fit: BoxFit.cover, title: ebook.title),
           ),
           Positioned.fill(
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
               child: Container(
-                color: AppColors.background.withValues(alpha: 0.85),
+                color: AppColors.getBackground(context).withValues(alpha: 0.85),
               ),
             ),
           ),
@@ -134,6 +175,7 @@ class EbookDetailPage extends StatelessWidget {
                                 width: 160,
                                 height: 230,
                                 fit: BoxFit.cover,
+                                title: ebook.title,
                               ),
                             ),
                           ),
@@ -180,8 +222,8 @@ class EbookDetailPage extends StatelessWidget {
                       Text(
                         ebook.title,
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: AppColors.textPrimary,
+                        style: TextStyle(
+                          color: AppColors.getTextPrimary(context),
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
                           height: 1.25,
@@ -204,13 +246,13 @@ class EbookDetailPage extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          Expanded(child: _buildStatTile('Rating', ebook.rating.toStringAsFixed(1), Icons.star_rounded, AppColors.accent)),
+                          Expanded(child: _buildStatTile(context, 'Rating', ebook.rating.toStringAsFixed(1), Icons.star_rounded, AppColors.accent)),
                           const SizedBox(width: 8),
-                          Expanded(child: _buildStatTile('Format', ebook.format, Icons.description_rounded, AppColors.primaryLight)),
+                          Expanded(child: _buildStatTile(context, 'Format', ebook.format, Icons.description_rounded, AppColors.primaryLight)),
                           const SizedBox(width: 8),
-                          Expanded(child: _buildStatTile('Size', ebook.fileSize, Icons.folder_rounded, AppColors.secondary)),
+                          Expanded(child: _buildStatTile(context, 'Size', ebook.fileSize, Icons.folder_rounded, AppColors.secondary)),
                           const SizedBox(width: 8),
-                          Expanded(child: _buildStatTile('Year', ebook.publishedYear.toString(), Icons.calendar_today_rounded, AppColors.emerald)),
+                          Expanded(child: _buildStatTile(context, 'Year', ebook.publishedYear.toString(), Icons.calendar_today_rounded, AppColors.emerald)),
                         ],
                       ),
                       const SizedBox(height: 28),
@@ -221,15 +263,9 @@ class EbookDetailPage extends StatelessWidget {
                         child: Text(
                           'Synopsis & Key Insights',
                           style: TextStyle(
-                            color: AppColors.textPrimary,
+                            color: AppColors.getTextPrimary(context),
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            shadows: [
-                              Shadow(
-                                color: AppColors.primary.withValues(alpha: 0.3),
-                                blurRadius: 8,
-                              ),
-                            ],
                           ),
                         ),
                       ),
@@ -240,8 +276,8 @@ class EbookDetailPage extends StatelessWidget {
                           ebook.description.isNotEmpty
                               ? ebook.description
                               : 'No detailed synopsis available for this title in the digital index.',
-                          style: const TextStyle(
-                            color: AppColors.textSecondary,
+                          style: TextStyle(
+                            color: AppColors.getTextSecondary(context),
                             fontSize: 14,
                             height: 1.65,
                           ),
@@ -299,10 +335,17 @@ class EbookDetailPage extends StatelessWidget {
                             listener: (context, state) {
                               if (state is DownloadSuccess && state.ebookId == ebook.id) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('E-book downloaded successfully! Available for offline reading.'),
+                                  SnackBar(
+                                    content: const Text('Ebook downloaded successfully.'),
                                     backgroundColor: AppColors.emerald,
                                     behavior: SnackBarBehavior.floating,
+                                    action: SnackBarAction(
+                                      label: 'Open File',
+                                      textColor: Colors.white,
+                                      onPressed: () {
+                                        _safeOpenFile(context, state.savedFilePath);
+                                      },
+                                    ),
                                   ),
                                 );
                               } else if (state is DownloadFailure && state.ebookId == ebook.id) {
@@ -319,6 +362,7 @@ class EbookDetailPage extends StatelessWidget {
                                               ebookId: ebook.id,
                                               downloadUrl: ebook.downloadUrl,
                                               title: ebook.title,
+                                              format: ebook.format,
                                             ));
                                       },
                                     ),
@@ -330,6 +374,7 @@ class EbookDetailPage extends StatelessWidget {
                               final isDownloading = state is DownloadInProgress && state.ebookId == ebook.id;
                               final isDownloaded = (state is DownloadSuccess && state.ebookId == ebook.id) || ebook.isDownloaded;
                               final progress = isDownloading ? state.progress : 0.0;
+                              final savedPath = state is DownloadSuccess ? state.savedFilePath : '';
 
                               return Column(
                                 children: [
@@ -351,8 +396,8 @@ class EbookDetailPage extends StatelessWidget {
                                                     ebookId: ebook.id,
                                                     downloadUrl: ebook.downloadUrl,
                                                     title: ebook.title,
+                                                    format: ebook.format,
                                                   ));
-                                              context.read<EbookBloc>().add(DownloadEbook(ebook.id));
                                             },
                                       icon: Icon(
                                         isDownloaded
@@ -360,7 +405,7 @@ class EbookDetailPage extends StatelessWidget {
                                             : isDownloading
                                                 ? Icons.downloading_rounded
                                                 : Icons.download_rounded,
-                                        color: isDownloaded ? AppColors.emerald : AppColors.textPrimary,
+                                        color: isDownloaded ? AppColors.emerald : AppColors.getTextPrimary(context),
                                       ),
                                       label: Text(
                                         isDownloaded
@@ -369,7 +414,7 @@ class EbookDetailPage extends StatelessWidget {
                                                 ? 'Downloading ${(progress * 100).toInt()}%'
                                                 : 'Download File (${ebook.fileSize})',
                                         style: TextStyle(
-                                          color: isDownloaded ? AppColors.emerald : AppColors.textPrimary,
+                                          color: isDownloaded ? AppColors.emerald : AppColors.getTextPrimary(context),
                                           fontSize: 15,
                                           fontWeight: FontWeight.bold,
                                         ),
@@ -381,6 +426,35 @@ class EbookDetailPage extends StatelessWidget {
                                       ),
                                     ),
                                   ),
+                                  if (isDownloaded && savedPath.isNotEmpty) ...[
+                                    const SizedBox(height: 10),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: ElevatedButton.icon(
+                                            onPressed: () => _safeOpenFile(context, savedPath),
+                                            icon: const Icon(Icons.folder_open_rounded, color: Colors.white, size: 18),
+                                            label: const Text('Open File', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: AppColors.secondary,
+                                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: OutlinedButton.icon(
+                                            onPressed: () => _safeShareFile(context, savedPath, ebook.title),
+                                            icon: Icon(Icons.share_rounded, color: AppColors.getTextPrimary(context), size: 18),
+                                            label: Text('Share File', style: TextStyle(color: AppColors.getTextPrimary(context), fontWeight: FontWeight.bold)),
+                                            style: OutlinedButton.styleFrom(
+                                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                   if (isDownloading) ...[
                                     const SizedBox(height: 8),
                                     ClipRRect(
@@ -411,7 +485,7 @@ class EbookDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildStatTile(String label, String value, IconData icon, Color color) {
+  Widget _buildStatTile(BuildContext context, String label, String value, IconData icon, Color color) {
     return GlassContainer(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
       child: Column(
@@ -420,8 +494,8 @@ class EbookDetailPage extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             value,
-            style: const TextStyle(
-              color: AppColors.textPrimary,
+            style: TextStyle(
+              color: AppColors.getTextPrimary(context),
               fontWeight: FontWeight.bold,
               fontSize: 13,
             ),
@@ -429,8 +503,8 @@ class EbookDetailPage extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             label,
-            style: const TextStyle(
-              color: AppColors.textMuted,
+            style: TextStyle(
+              color: AppColors.getTextMuted(context),
               fontSize: 10,
             ),
           ),

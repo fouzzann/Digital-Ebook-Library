@@ -13,17 +13,17 @@ class DownloadProgressIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final percentage = (progress * 100).toInt();
+    final percentage = (progress * 100).clamp(0, 100).toInt();
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppColors.getSurface(context),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.getBorder(context)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -42,8 +42,8 @@ class DownloadProgressIndicator extends StatelessWidget {
                   const SizedBox(width: 8),
                   Text(
                     'Downloading E-Book... $percentage%',
-                    style: const TextStyle(
-                      color: AppColors.textPrimary,
+                    style: TextStyle(
+                      color: AppColors.getTextPrimary(context),
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
                     ),
@@ -53,7 +53,9 @@ class DownloadProgressIndicator extends StatelessWidget {
               if (onCancel != null)
                 GestureDetector(
                   onTap: onCancel,
-                  child: const Icon(Icons.close_rounded, color: AppColors.textMuted, size: 18),
+                  child: TextStyle(color: AppColors.getTextMuted(context)) != null
+                      ? Icon(Icons.close_rounded, color: AppColors.getTextMuted(context), size: 18)
+                      : const SizedBox.shrink(),
                 ),
             ],
           ),

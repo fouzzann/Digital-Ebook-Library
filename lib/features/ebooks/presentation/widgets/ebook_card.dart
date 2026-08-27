@@ -3,12 +3,14 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/image_utils.dart';
 import '../../domain/entities/ebook_entity.dart';
 import 'glass_container.dart';
+import 'highlighted_text_widget.dart';
 
 class EbookCard extends StatelessWidget {
   final EbookEntity ebook;
   final VoidCallback onTap;
   final VoidCallback onDownload;
   final VoidCallback onDelete;
+  final String searchQuery;
 
   const EbookCard({
     super.key,
@@ -16,6 +18,7 @@ class EbookCard extends StatelessWidget {
     required this.onTap,
     required this.onDownload,
     required this.onDelete,
+    this.searchQuery = '',
   });
 
   @override
@@ -52,6 +55,7 @@ class EbookCard extends StatelessWidget {
                       fit: BoxFit.cover,
                       width: 78,
                       height: 108,
+                      title: ebook.title,
                     ),
                   ),
                 ),
@@ -130,8 +134,9 @@ class EbookCard extends StatelessWidget {
                 const SizedBox(height: 8),
 
                 // Title
-                Text(
-                  ebook.title,
+                HighlightedText(
+                  text: ebook.title,
+                  query: searchQuery,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -144,8 +149,9 @@ class EbookCard extends StatelessWidget {
                 const SizedBox(height: 4),
 
                 // Author
-                Text(
-                  ebook.author,
+                HighlightedText(
+                  text: ebook.author,
+                  query: searchQuery,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(

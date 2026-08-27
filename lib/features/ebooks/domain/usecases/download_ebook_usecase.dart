@@ -12,4 +12,20 @@ class DownloadEbookUseCase implements UseCase<Stream<double>, String> {
   Future<Either<Failure, Stream<double>>> call(String id) async {
     return await repository.downloadEbook(id);
   }
+
+  Future<Either<Failure, String>> downloadFile(
+    String id, {
+    required String downloadUrl,
+    required String title,
+    required String format,
+    required void Function(double progress) onProgress,
+  }) async {
+    return await repository.downloadEbookFile(
+      id,
+      downloadUrl: downloadUrl,
+      title: title,
+      format: format,
+      onProgress: onProgress,
+    );
+  }
 }

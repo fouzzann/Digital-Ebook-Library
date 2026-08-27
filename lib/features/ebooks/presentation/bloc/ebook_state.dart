@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/ebook_entity.dart';
+import 'ebook_event.dart';
 
 abstract class EbookState extends Equatable {
   const EbookState();
@@ -23,17 +24,21 @@ class EbookLoading extends EbookState {
   List<Object?> get props => [message];
 }
 
-/// Loaded state containing list of ebooks and category filter state
+/// Loaded state containing list of ebooks and filter/sort state
 class EbooksLoaded extends EbookState {
   final List<EbookEntity> ebooks;
   final List<EbookEntity> filteredEbooks;
   final String selectedCategory;
+  final String selectedFormat;
+  final SortOption sortOption;
   final String searchQuery;
 
   const EbooksLoaded({
     required this.ebooks,
     required this.filteredEbooks,
     this.selectedCategory = 'All',
+    this.selectedFormat = 'All',
+    this.sortOption = SortOption.recentlyUploaded,
     this.searchQuery = '',
   });
 
@@ -41,18 +46,29 @@ class EbooksLoaded extends EbookState {
     List<EbookEntity>? ebooks,
     List<EbookEntity>? filteredEbooks,
     String? selectedCategory,
+    String? selectedFormat,
+    SortOption? sortOption,
     String? searchQuery,
   }) {
     return EbooksLoaded(
       ebooks: ebooks ?? this.ebooks,
       filteredEbooks: filteredEbooks ?? this.filteredEbooks,
       selectedCategory: selectedCategory ?? this.selectedCategory,
+      selectedFormat: selectedFormat ?? this.selectedFormat,
+      sortOption: sortOption ?? this.sortOption,
       searchQuery: searchQuery ?? this.searchQuery,
     );
   }
 
   @override
-  List<Object?> get props => [ebooks, filteredEbooks, selectedCategory, searchQuery];
+  List<Object?> get props => [
+        ebooks,
+        filteredEbooks,
+        selectedCategory,
+        selectedFormat,
+        sortOption,
+        searchQuery,
+      ];
 }
 
 /// Empty state when no ebooks match criteria

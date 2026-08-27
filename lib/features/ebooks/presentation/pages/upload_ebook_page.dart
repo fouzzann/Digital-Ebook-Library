@@ -3,6 +3,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:path_provider/path_provider.dart' as path_provider;
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../domain/entities/ebook_entity.dart';
@@ -30,10 +31,12 @@ class _UploadEbookPageState extends State<UploadEbookPage> {
   String _selectedFormat = 'PDF';
   String _selectedFileSize = '0 MB';
   PlatformFile? _selectedFile;
+  String? _savedPdfPath;
   String? _fileError;
 
   bool _useLocalCover = true;
   PlatformFile? _selectedCoverFile;
+  String? _savedCoverPath;
   Uint8List? _coverBytes;
 
   final List<String> _categories = [
@@ -93,8 +96,25 @@ class _UploadEbookPageState extends State<UploadEbookPage> {
             ? '${sizeInMb.toStringAsFixed(1)} MB'
             : '${(byteLength / 1024).toStringAsFixed(1)} KB';
 
+        String? permanentPdfPath;
+        if (!kIsWeb && file.path != null) {
+          try {
+            final appDir = await path_provider.getApplicationDocumentsDirectory();
+            final dir = io.Directory('${appDir.path}/uploaded_ebooks');
+            if (!await dir.exists()) {
+              await dir.create(recursive: true);
+            }
+            final targetFile = io.File('${dir.path}/${DateTime.now().millisecondsSinceEpoch}_${file.name}');
+            final copied = await io.File(file.path!).copy(targetFile.path);
+            permanentPdfPath = copied.path;
+          } catch (_) {
+            permanentPdfPath = file.path;
+          }
+        }
+
         setState(() {
           _selectedFile = file;
+          _savedPdfPath = permanentPdfPath ?? file.path;
           _fileError = null;
           _selectedFormat = computedFormat;
           _selectedFileSize = formattedSize;
@@ -125,12 +145,30 @@ class _UploadEbookPageState extends State<UploadEbookPage> {
           bytes = await file.readAsBytes();
         }
 
+        String? permanentCoverPath;
+        if (!kIsWeb && file.path != null) {
+          try {
+            final appDir = await path_provider.getApplicationDocumentsDirectory();
+            final dir = io.Directory('${appDir.path}/uploaded_covers');
+            if (!await dir.exists()) {
+              await dir.create(recursive: true);
+            }
+            final targetFile = io.File('${dir.path}/${DateTime.now().millisecondsSinceEpoch}_${file.name}');
+            final copied = await io.File(file.path!).copy(targetFile.path);
+            permanentCoverPath = copied.path;
+          } catch (_) {
+            permanentCoverPath = file.path;
+          }
+        }
+
         if (!mounted) return;
 
         setState(() {
           _selectedCoverFile = file;
+          _savedCoverPath = permanentCoverPath ?? file.path;
           _coverBytes = bytes;
-          _coverUrlController.text = file.path ?? file.name;
+          _useLocalCover = true;
+          _coverUrlController.text = permanentCoverPath ?? file.path ?? file.name;
         });
       }
     } catch (e) {
@@ -149,10 +187,19 @@ class _UploadEbookPageState extends State<UploadEbookPage> {
       });
     }
 
-    String coverUrl = _coverUrlController.text.trim();
-    if (_useLocalCover && _selectedCoverFile != null) {
-      coverUrl = _selectedCoverFile!.path ?? _selectedCoverFile!.name;
+    String coverUrl = '';
+    if (_useLocalCover && _savedCoverPath != null && _savedCoverPath!.isNotEmpty) {
+      coverUrl = _savedCoverPath!;
+    } else if (_useLocalCover && _selectedCoverFile?.path != null) {
+      coverUrl = _selectedCoverFile!.path!;
+    } else if (_coverUrlController.text.trim().isNotEmpty) {
+      coverUrl = _coverUrlController.text.trim();
     }
+
+    final downloadUrl = _savedPdfPath ??
+        _selectedFile?.path ??
+        _selectedFile?.name ??
+        'https://example.com/ebooks/uploaded.pdf';
 
     if (_formKey.currentState!.validate() && hasFile) {
       final ebook = EbookEntity(
@@ -162,11 +209,12 @@ class _UploadEbookPageState extends State<UploadEbookPage> {
         description: _descriptionController.text.trim(),
         category: _selectedCategory,
         coverUrl: coverUrl,
-        downloadUrl: _selectedFile?.path ?? _selectedFile?.name ?? 'https://example.com/ebooks/uploaded.pdf',
+        downloadUrl: downloadUrl,
         fileSize: _selectedFileSize,
         format: _selectedFormat,
         publishedYear: int.tryParse(_yearController.text) ?? DateTime.now().year,
         rating: 5.0,
+        isDownloaded: true,
       );
 
       context.read<EbookBloc>().add(UploadEbook(ebook));
@@ -176,16 +224,16 @@ class _UploadEbookPageState extends State<UploadEbookPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.getBackground(context),
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
+        backgroundColor: AppColors.getSurface(context),
         elevation: 0,
-        title: const Text(
+        title: Text(
           AppStrings.uploadButton,
-          style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
+          style: TextStyle(color: AppColors.getTextPrimary(context), fontWeight: FontWeight.bold),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back_rounded, color: AppColors.getTextPrimary(context)),
           onPressed: () => Navigator.pop(context),
         ),
       ),

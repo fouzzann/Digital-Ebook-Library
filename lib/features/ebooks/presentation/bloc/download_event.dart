@@ -11,15 +11,17 @@ class StartDownload extends DownloadEvent {
   final String ebookId;
   final String downloadUrl;
   final String title;
+  final String format;
 
   const StartDownload({
     required this.ebookId,
     required this.downloadUrl,
     required this.title,
+    this.format = 'PDF',
   });
 
   @override
-  List<Object?> get props => [ebookId, downloadUrl, title];
+  List<Object?> get props => [ebookId, downloadUrl, title, format];
 }
 
 class CancelDownload extends DownloadEvent {

@@ -88,6 +88,32 @@ class EbookRepositoryImpl implements EbookRepository {
   }
 
   @override
+  Future<Either<Failure, String>> downloadEbookFile(
+    String id, {
+    required String downloadUrl,
+    required String title,
+    required String format,
+    required void Function(double progress) onProgress,
+  }) async {
+    try {
+      final savedPath = await remoteDataSource.downloadEbookFile(
+        id,
+        downloadUrl: downloadUrl,
+        title: title,
+        format: format,
+        onProgress: onProgress,
+      );
+      return Right(savedPath);
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(e.message));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message, statusCode: e.statusCode));
+    } catch (e) {
+      return Left(ServerFailure('Failed to save e-book file: ${e.toString()}'));
+    }
+  }
+
+  @override
   Future<Either<Failure, void>> deleteEbook(String id) async {
     try {
       await remoteDataSource.deleteEbook(id);

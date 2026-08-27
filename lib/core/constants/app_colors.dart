@@ -63,10 +63,54 @@ class AppColors {
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
   );
+  // Context-aware theme dynamic helpers
+  static bool isDark(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark;
+  }
 
-  static const LinearGradient cardGlow = LinearGradient(
-    colors: [Color(0x336366F1), Color(0x006366F1)],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
+  static Color getBackground(BuildContext context) {
+    return isDark(context) ? const Color(0xFF0B0F17) : const Color(0xFFF3F4F6); // Crisp bright light background
+  }
+
+  static Color getSurface(BuildContext context) {
+    return isDark(context) ? const Color(0xFF131B2E) : const Color(0xFFFFFFFF); // Pure white card surface
+  }
+
+  static Color getCardBackground(BuildContext context) {
+    return isDark(context) ? const Color(0xFF161F33) : const Color(0xFFFFFFFF);
+  }
+
+  static Color getGlassSurface(BuildContext context) {
+    return isDark(context) ? const Color(0x2B1E293B) : const Color(0xCCFFFFFF);
+  }
+
+  static Color getTextPrimary(BuildContext context) {
+    return isDark(context) ? const Color(0xFFF8FAFC) : const Color(0xFF0F172A); // Dark charcoal text in light mode
+  }
+
+  static Color getTextSecondary(BuildContext context) {
+    return isDark(context) ? const Color(0xFF94A3B8) : const Color(0xFF475569);
+  }
+
+  static Color getTextMuted(BuildContext context) {
+    return isDark(context) ? const Color(0xFF64748B) : const Color(0xFF64748B);
+  }
+
+  static Color getBorder(BuildContext context) {
+    return isDark(context) ? const Color(0x33475569) : const Color(0xFFE2E8F0);
+  }
+
+  static LinearGradient getHeroGradient(BuildContext context) {
+    return isDark(context)
+        ? const LinearGradient(
+            colors: [Colors.transparent, Color(0xCC0B0F17), Color(0xFF0B0F17)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          )
+        : const LinearGradient(
+            colors: [Colors.transparent, Color(0xCCF3F4F6), Color(0xFFF3F4F6)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          );
+  }
 }

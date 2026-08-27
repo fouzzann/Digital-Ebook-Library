@@ -34,16 +34,16 @@ class FeaturedCarouselWidget extends StatelessWidget {
           children: [
             // Background Image Blur Overlay
             Positioned.fill(
-              child: buildEbookCoverImage(coverUrl: ebook.coverUrl, fit: BoxFit.cover),
+              child: buildEbookCoverImage(coverUrl: ebook.coverUrl, fit: BoxFit.cover, title: ebook.title),
             ),
             Positioned.fill(
               child: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      AppColors.background.withValues(alpha: 0.95),
-                      AppColors.background.withValues(alpha: 0.65),
-                      AppColors.background.withValues(alpha: 0.95),
+                      AppColors.getBackground(context).withValues(alpha: 0.95),
+                      AppColors.getBackground(context).withValues(alpha: 0.65),
+                      AppColors.getBackground(context).withValues(alpha: 0.95),
                     ],
                     begin: Alignment.centerLeft,
                     end: Alignment.centerRight,
@@ -72,7 +72,7 @@ class FeaturedCarouselWidget extends StatelessWidget {
                           ),
                         ],
                       ),
-                      child: buildEbookCoverImage(coverUrl: ebook.coverUrl, fit: BoxFit.cover, width: 95, height: 140),
+                      child: buildEbookCoverImage(coverUrl: ebook.coverUrl, fit: BoxFit.cover, width: 95, height: 140, title: ebook.title),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -111,8 +111,8 @@ class FeaturedCarouselWidget extends StatelessWidget {
                           ebook.title,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: AppColors.textPrimary,
+                          style: TextStyle(
+                            color: AppColors.getTextPrimary(context),
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -122,8 +122,8 @@ class FeaturedCarouselWidget extends StatelessWidget {
                           'by ${ebook.author}',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: AppColors.textSecondary,
+                          style: TextStyle(
+                            color: AppColors.getTextSecondary(context),
                             fontSize: 12,
                           ),
                         ),
@@ -134,8 +134,8 @@ class FeaturedCarouselWidget extends StatelessWidget {
                             const SizedBox(width: 4),
                             Text(
                               '${ebook.rating} Rating',
-                              style: const TextStyle(
-                                color: AppColors.textPrimary,
+                              style: TextStyle(
+                                color: AppColors.getTextPrimary(context),
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
                               ),

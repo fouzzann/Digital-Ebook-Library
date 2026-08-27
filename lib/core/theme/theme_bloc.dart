@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // Events
 abstract class ThemeEvent extends Equatable {
@@ -43,13 +44,22 @@ class ThemeState extends Equatable {
 
 // BLoC
 class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
-  ThemeBloc() : super(const ThemeState(themeMode: ThemeMode.dark)) {
+  final SharedPreferences? sharedPreferences;
+
+  ThemeBloc({this.sharedPreferences})
+      : super(ThemeState(
+          themeMode: (sharedPreferences?.getString('app_theme_mode') == 'light')
+              ? ThemeMode.light
+              : ThemeMode.dark,
+        )) {
     on<ToggleTheme>((event, emit) {
       final newMode = state.themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+      sharedPreferences?.setString('app_theme_mode', newMode == ThemeMode.light ? 'light' : 'dark');
       emit(state.copyWith(themeMode: newMode));
     });
 
     on<SetThemeMode>((event, emit) {
+      sharedPreferences?.setString('app_theme_mode', event.themeMode == ThemeMode.light ? 'light' : 'dark');
       emit(state.copyWith(themeMode: event.themeMode));
     });
   }

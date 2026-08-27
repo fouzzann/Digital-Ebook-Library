@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
@@ -22,6 +23,7 @@ class SearchBarWidget extends StatefulWidget {
 class _SearchBarWidgetState extends State<SearchBarWidget> {
   late final TextEditingController _controller;
   bool _isFocused = false;
+  Timer? _debounceTimer;
 
   @override
   void initState() {
@@ -31,8 +33,17 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     _controller.dispose();
     super.dispose();
+  }
+
+  void _onQueryChanged(String query) {
+    setState(() {});
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 300), () {
+      widget.onChanged(query);
+    });
   }
 
   @override
@@ -56,20 +67,21 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
           onFocusChange: (focused) => setState(() => _isFocused = focused),
           child: TextField(
             controller: _controller,
-            onChanged: widget.onChanged,
-            style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
+            onChanged: _onQueryChanged,
+            style: TextStyle(color: AppColors.getTextPrimary(context), fontSize: 14),
             decoration: InputDecoration(
               hintText: AppStrings.searchPlaceholder,
-              hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 13),
+              hintStyle: TextStyle(color: AppColors.getTextMuted(context), fontSize: 13),
               prefixIcon: Icon(
                 Icons.search_rounded,
-                color: _isFocused ? AppColors.primary : AppColors.textSecondary,
+                color: _isFocused ? AppColors.primary : AppColors.getTextSecondary(context),
                 size: 22,
               ),
               suffixIcon: _controller.text.isNotEmpty
                   ? IconButton(
-                      icon: const Icon(Icons.close_rounded, color: AppColors.textSecondary, size: 18),
+                      icon: Icon(Icons.close_rounded, color: AppColors.getTextSecondary(context), size: 18),
                       onPressed: () {
+                        _debounceTimer?.cancel();
                         _controller.clear();
                         widget.onChanged('');
                         if (widget.onClear != null) widget.onClear!();

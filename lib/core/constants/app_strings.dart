@@ -1,5 +1,5 @@
 class AppStrings {
-  static const String appTitle = 'Digital E-Book Library';
+  static const String appTitle = 'Digital E Book';
   static const String subtitle = 'Discover, Read & Manage Your Digital Collection';
   static const String searchPlaceholder = 'Search by title, author, or category...';
   
@@ -29,7 +29,7 @@ class AppStrings {
   static const String descriptionLabel = 'Description';
   static const String categoryLabel = 'Category';
   static const String formatLabel = 'Format';
-  static const String uploadButton = 'Upload E-Book';
+  static const String uploadButton = 'Upload';
   static const String downloadButton = 'Download';
   static const String deleteButton = 'Delete';
   static const String retryButton = 'Retry';
