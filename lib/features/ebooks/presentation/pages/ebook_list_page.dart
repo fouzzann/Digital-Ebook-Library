@@ -281,9 +281,9 @@ class _EbookListPageState extends State<EbookListPage> {
                           child: Row(
                             children: [
                               Container(
-                                padding: const EdgeInsets.all(9),
+                                width: 38,
+                                height: 38,
                                 decoration: BoxDecoration(
-                                  gradient: AppColors.primaryGradient,
                                   borderRadius: BorderRadius.circular(12),
                                   boxShadow: [
                                     BoxShadow(
@@ -293,7 +293,21 @@ class _EbookListPageState extends State<EbookListPage> {
                                     ),
                                   ],
                                 ),
-                                child: const Icon(Icons.auto_stories_rounded, color: Colors.white, size: 20),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Image.asset(
+                                    'asset/App icon.png',
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) => Container(
+                                      padding: const EdgeInsets.all(9),
+                                      decoration: BoxDecoration(
+                                        gradient: AppColors.primaryGradient,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: const Icon(Icons.auto_stories_rounded, color: Colors.white, size: 20),
+                                    ),
+                                  ),
+                                ),
                               ),
                               const SizedBox(width: 10),
                               Expanded(

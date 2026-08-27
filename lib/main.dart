@@ -7,7 +7,7 @@ import 'core/theme/theme_bloc.dart';
 import 'features/ebooks/presentation/bloc/download_bloc.dart';
 import 'features/ebooks/presentation/bloc/ebook_bloc.dart';
 import 'features/ebooks/presentation/bloc/reader_bloc.dart';
-import 'features/ebooks/presentation/pages/ebook_list_page.dart';
+import 'features/ebooks/presentation/pages/splash_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,7 +35,7 @@ class MyApp extends StatelessWidget {
             themeMode: themeState.themeMode,
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
-            home: const EbookListPage(),
+            home: const SplashPage(),
           );
         },
       ),
