@@ -53,9 +53,7 @@ class DownloadProgressIndicator extends StatelessWidget {
               if (onCancel != null)
                 GestureDetector(
                   onTap: onCancel,
-                  child: TextStyle(color: AppColors.getTextMuted(context)) != null
-                      ? Icon(Icons.close_rounded, color: AppColors.getTextMuted(context), size: 18)
-                      : const SizedBox.shrink(),
+                  child: Icon(Icons.close_rounded, color: AppColors.getTextMuted(context), size: 18),
                 ),
             ],
           ),

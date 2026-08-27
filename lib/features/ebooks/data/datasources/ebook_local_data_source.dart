@@ -41,8 +41,8 @@ class EbookLocalDataSourceImpl implements EbookLocalDataSource {
     customBooks.removeWhere((e) => e.id == ebook.id);
     customBooks.insert(0, ebook);
 
-    final StringList = customBooks.map((e) => jsonEncode(e.toJson())).toList();
-    await sharedPreferences.setStringList(_customEbooksKey, StringList);
+    final stringList = customBooks.map((e) => jsonEncode(e.toJson())).toList();
+    await sharedPreferences.setStringList(_customEbooksKey, stringList);
 
     // If re-saving a book, ensure it's not marked as deleted
     final deletedIds = await getDeletedEbookIds();
@@ -54,8 +54,8 @@ class EbookLocalDataSourceImpl implements EbookLocalDataSource {
 
   @override
   Future<List<EbookModel>> getCustomEbooks() async {
-    final StringList = sharedPreferences.getStringList(_customEbooksKey) ?? [];
-    return StringList.map((str) {
+    final stringList = sharedPreferences.getStringList(_customEbooksKey) ?? [];
+    return stringList.map((str) {
       try {
         final map = jsonDecode(str) as Map<String, dynamic>;
         return EbookModel.fromJson(map);
@@ -70,8 +70,8 @@ class EbookLocalDataSourceImpl implements EbookLocalDataSource {
     final customBooks = await getCustomEbooks();
     customBooks.removeWhere((e) => e.id == ebookId);
 
-    final StringList = customBooks.map((e) => jsonEncode(e.toJson())).toList();
-    await sharedPreferences.setStringList(_customEbooksKey, StringList);
+    final stringList = customBooks.map((e) => jsonEncode(e.toJson())).toList();
+    await sharedPreferences.setStringList(_customEbooksKey, stringList);
   }
 
   @override

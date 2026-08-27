@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/image_utils.dart';
 import '../../domain/entities/ebook_entity.dart';
-import 'glass_container.dart';
 import 'highlighted_text_widget.dart';
 
 class BookshelfViewWidget extends StatelessWidget {

@@ -45,7 +45,12 @@ class EbookDetailPage extends StatelessWidget {
 
   Future<void> _safeShareFile(BuildContext context, String filePath, String title) async {
     try {
-      await Share.shareXFiles([XFile(filePath)], text: title);
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(filePath)],
+          text: title,
+        ),
+      );
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

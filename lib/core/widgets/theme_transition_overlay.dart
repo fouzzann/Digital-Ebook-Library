@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import '../constants/app_colors.dart';
 
 class ThemeTransitionOverlay {
   static void show(BuildContext context, {required bool isDarkTarget}) {

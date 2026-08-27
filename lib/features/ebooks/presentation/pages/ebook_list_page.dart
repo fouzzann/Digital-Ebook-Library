@@ -698,7 +698,6 @@ class _EbookListPageState extends State<EbookListPage> {
       case SortOption.authorAsc:
         return 'Sorted: Author A-Z';
       case SortOption.recentlyUploaded:
-      default:
         return 'Sorted: Recent';
     }
   }

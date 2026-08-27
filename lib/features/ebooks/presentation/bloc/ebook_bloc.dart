@@ -386,7 +386,6 @@ class EbookBloc extends Bloc<EbookEvent, EbookState> {
         filtered.sort((a, b) => a.author.toLowerCase().compareTo(b.author.toLowerCase()));
         break;
       case SortOption.recentlyUploaded:
-      default:
         break;
     }
 
